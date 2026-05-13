@@ -7,7 +7,7 @@ import { StatusCodes } from "http-status-codes";
 
 export const register = async (req, res) => {
   try {
-    const { firstName, lastName, email, password } = req.body;
+    const { firstName, lastName, email, password, role, confirmPassword  } = req.body;
 
     const exist = await User.findOne({ email });
     if (exist) {

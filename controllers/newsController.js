@@ -20,7 +20,8 @@ export const getMyNews = async (req, res) => {
   try {
     const news = await News.find({ author: req.user._id })
       .sort({ createdAt: -1 });
-
+      
+return handleError(res,StatusCodes.CONFLICT,"creat news not found")
     return handleSuccess(res, StatusCodes.OK, "My news fetched successfully", news);
   } catch (error) {
     return handleError(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
