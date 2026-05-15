@@ -4,28 +4,48 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { handleSuccess, handleError } from "../utils/responseHandler.js";
 import { StatusCodes } from "http-status-codes";
+import { sendNewUserEmail } from "../utils/sendEmail.js";
 
 export const register = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, role, confirmPassword  } = req.body;
+    const { firstName, lastName, email, password, country } = req.body;
 
+    
     const exist = await User.findOne({ email });
     if (exist) {
       return handleError(res, 409, "User already exists");
     }
 
+    
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({
+    
+    const newUser = await User.create({
       name: `${firstName} ${lastName}`,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      country
     });
 
-    const userResponse = user.toObject();
-    delete userResponse.password;
+    if (newUser) {
+      
+      try {
+        await sendNewUserEmail({
+          to: process.env.EMAIL_USER,
+          name: newUser.name,
+          email: newUser.email,
+          country: newUser.country,
+        });
+      } catch (mailError) {
+        console.error("Email sending failed:", mailError);
+        
+      }
 
-    return handleSuccess(res, 201, "User created", userResponse);
+      const userResponse = newUser.toObject();
+      delete userResponse.password;
+
+      return handleSuccess(res, 201, "User registered successfully", userResponse);
+    }
   } catch (error) {
     return handleError(res, 500, error.message);
   }

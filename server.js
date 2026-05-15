@@ -1,9 +1,9 @@
 import dotenv from "dotenv";
-dotenv.config(); 
+dotenv.config();
 
 import express from "express";
-import cors from "cors";
 import connectDB from "./config/db.js";
+import cors from "cors";
 import newsRoutes from "./routes/newsRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import fileUpload from "express-fileupload";
@@ -20,8 +20,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(fileUpload({ useTempFiles: true, tempFileDir: "/tmp/" }));
 app.use("/uploads", express.static("uploads"));
 
-connectDB();
-
 app.use("/api/v1/news", newsRoutes);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/messages", messageRoutes);
@@ -31,5 +29,11 @@ app.use("/api/v1/Category", categoryRoutes);
 
 app.get("/", (req, res) => res.send("API is running 🔥"));
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✅ Server running on port ${PORT} 🚀`));
+
+const startServer = async () => {
+  await connectDB();
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log(`✅ Server running on port ${PORT} 🚀`));
+};
+
+startServer();

@@ -1,10 +1,9 @@
 import express from "express";
-import { register, login } from "../controllers/authController.js";
+import { register, login, deleteAccount } from "../controllers/authController.js";
 import { protect } from "../middleware/authMiddleware.js";
-import { deleteAccount } from "../controllers/authController.js";
-import { handleError, handleSuccess } from "../utils/responseHandler.js";
 import { validate } from "../middleware/validator.js";
 import { signupSchema, signinSchema } from "../validators/authValidator.js";
+
 const router = express.Router();
 
 router.post("/register", validate(signupSchema), register);
