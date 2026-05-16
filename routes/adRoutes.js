@@ -4,6 +4,7 @@ import { createAd, getAds } from "../controllers/adController.js";
 const router = express.Router();
 
 router.post("/create", createAd);
-router.get("/all", getAds);
+router.get("/",        getAds);  
 
 export default router;
+

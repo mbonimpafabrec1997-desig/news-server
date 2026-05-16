@@ -3,10 +3,10 @@ import mongoose from "mongoose";
 const adSchema = new mongoose.Schema({
   businessName: { type: String, required: true },
   email: { type: String, required: true },
-  duration: { type: Number, required: true }, // Iminsi (1, 7, 28)
+  duration: { type: Number, required: true }, 
   description: { type: String },
-  banner: { type: String }, // URL y'ifoto
-  status: { type: String, default: "pending" }, // pending, active, expired
+  banner: { type: String }, 
+  status: { type: String, default: "pending" }, 
   createdAt: { type: Date, default: Date.now },
 });
 
