@@ -65,11 +65,12 @@ export const login = async (req, res) => {
       return handleError(res, StatusCodes.BAD_REQUEST, "Wrong password or email");
     }
 
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET || "secretkey",
-      { expiresIn: "7d" }
-    );
+  
+const token = jwt.sign(
+  { id: user._id, role: user.role }, 
+  process.env.JWT_SECRET, 
+  { expiresIn: "90d" } 
+);
 
     const userResponse = user.toObject();
     delete userResponse.password;

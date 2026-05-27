@@ -12,7 +12,7 @@ export const signinSchema = Joi.object({
   password: Joi.string()
     .required()
     .min(8)
-    .max(10)
+    .max(12)
     .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9]).{8,}$/)
     .messages({
       'string.base': 'password should be a type of text',  
