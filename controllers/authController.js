@@ -10,16 +10,13 @@ export const register = async (req, res) => {
   try {
     const { firstName, lastName, email, password, country } = req.body;
 
-    
     const exist = await User.findOne({ email });
     if (exist) {
       return handleError(res, 409, "User already exists");
     }
 
-    
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    
     const newUser = await User.create({
       name: `${firstName} ${lastName}`,
       email,
@@ -28,7 +25,6 @@ export const register = async (req, res) => {
     });
 
     if (newUser) {
-      
       try {
         await sendNewUserEmail({
           to: process.env.EMAIL_USER,
@@ -38,7 +34,6 @@ export const register = async (req, res) => {
         });
       } catch (mailError) {
         console.error("Email sending failed:", mailError);
-        
       }
 
       const userResponse = newUser.toObject();
@@ -50,6 +45,7 @@ export const register = async (req, res) => {
     return handleError(res, 500, error.message);
   }
 };
+
 
 export const login = async (req, res) => {
   try {
@@ -65,12 +61,11 @@ export const login = async (req, res) => {
       return handleError(res, StatusCodes.BAD_REQUEST, "Wrong password or email");
     }
 
-  
-const token = jwt.sign(
-  { id: user._id, role: user.role }, 
-  process.env.JWT_SECRET, 
-  { expiresIn: "90d" } 
-);
+    const token = jwt.sign(
+      { id: user._id, role: user.role }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: "90d" } 
+    );
 
     const userResponse = user.toObject();
     delete userResponse.password;
@@ -81,6 +76,18 @@ const token = jwt.sign(
     });
   } catch (error) {
     return handleError(res, StatusCodes.INTERNAL_SERVER_ERROR, "Internal server error");
+  }
+};
+
+export const logoutUser = async (req, res) => {
+  try {
+    res.clearCookie('token'); 
+    return res.status(200).json({ 
+      success: true, 
+      message: "Logged out successfully from server." 
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -96,7 +103,32 @@ export const deleteAccount = async (req, res) => {
       return handleError(res, StatusCodes.NOT_FOUND, "User not found");
     }
 
+    res.clearCookie('token'); 
+
     return handleSuccess(res, StatusCodes.OK, "Account and all related news deleted successfully");
+  } catch (error) {
+    return handleError(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+};
+
+export const adminDeleteUser = async (req, res) => {
+  try {
+  
+    const { id } = req.params;         
+ 
+    await News.deleteMany({ author: id });
+ 
+    const deletedUser = await User.findByIdAndDelete(id);
+ 
+    if (!deletedUser) {
+      return handleError(res, StatusCodes.NOT_FOUND, "User not found");
+    }
+ 
+    return handleSuccess(
+      res,
+      StatusCodes.OK,
+      `User "${deletedUser.name}" and all their content deleted successfully by Admin`
+    );
   } catch (error) {
     return handleError(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
   }

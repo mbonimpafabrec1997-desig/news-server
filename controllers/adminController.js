@@ -1,5 +1,7 @@
 import News from '../models/News.js'; 
 import User from '../models/User.js';
+import { handleSuccess, handleError } from "../utils/responseHandler.js";
+import { StatusCodes } from "http-status-codes";
 
 export const deleteNewsAdmin = async (req, res) => {
   try {
@@ -59,6 +61,27 @@ export const handleUserViolation = async (req, res) => {
     }
 
     res.status(200).json({ message: "Violator has been banned and the article removed successfully!" });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
+export const adminDeleteUser = async (req, res) => {
+  try {
+  
+    const { userId } = req.params;         
+ 
+    await News.deleteMany({ author: userId });
+ 
+    const deletedUser = await User.findByIdAndDelete(userId);
+ 
+    if (!deletedUser) {
+      return res.status(404).json({ message: "User not found on the server." });
+    }
+ 
+    res.status(200).json({ 
+      message: `User "${deletedUser.name}" and all their news content deleted successfully by Admin.` 
+    });
   } catch (error) {
     res.status(500).json({ message: "Internal server error", error: error.message });
   }

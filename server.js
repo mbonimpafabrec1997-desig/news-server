@@ -13,7 +13,7 @@ import messageRoutes from "./routes/messageRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import adRoutes from "./routes/adRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
-import adminRoutes from "./routes/adminRoutes.js"; 
+import adminRoutes from "./routes/adminRoutes.js";
 import statusRoutes from "./routes/status.js";
 
 const app = express();
@@ -32,7 +32,7 @@ app.use("/api/v1/messages", messageRoutes);
 app.use("/api/v1/contact", contactRoutes);
 app.use("/api/v1/ads", adRoutes);
 app.use("/api/v1/Category", categoryRoutes);
-app.use("/api/v1", adminRoutes);
+app.use('/api/v1/admin', adminRoutes);
 app.use("/api/v1/status", statusRoutes);
 
 app.get("/", (req, res) => res.send("API is running 🔥"));
