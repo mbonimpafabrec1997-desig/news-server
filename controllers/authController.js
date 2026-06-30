@@ -79,15 +79,21 @@ export const login = async (req, res) => {
   }
 };
 
-export const logoutUser = async (req, res) => {
+const handleLogout = async () => {
   try {
-    res.clearCookie('token'); 
-    return res.status(200).json({ 
-      success: true, 
-      message: "Logged out successfully from server." 
+  
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    await fetch(`${API_URL}/api/v1/auth/logout`, {
+      method: "POST",
     });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+
+  } catch (err) {
+    console.error("Logout backend error:", err);
+  } finally {
+  
+    window.location.href = "/login";
   }
 };
 
@@ -131,5 +137,19 @@ export const adminDeleteUser = async (req, res) => {
     );
   } catch (error) {
     return handleError(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+};
+
+export const logoutUser = async (req, res) => {
+  try {
+  
+    res.clearCookie('token'); 
+    
+    return res.status(200).json({ 
+      success: true, 
+      message: "Logged out successfully from server." 
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 };

@@ -9,6 +9,7 @@ const router = express.Router();
 router.post("/register", validate(signupSchema), register);
 router.post("/login", validate(signinSchema), login);
 router.delete("/delete-account", protect(['user']), deleteAccount);
+router.post("/logout", logoutUser);
 
 
 export default router;
