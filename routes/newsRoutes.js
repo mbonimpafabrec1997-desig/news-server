@@ -11,6 +11,6 @@ router.get("/", getNews);
 router.get("/my-news", protect(), getMyNews);
 router.get("/:id", getNewsById);
 router.post("/", protect(), createNews);
-router.delete("/:id", protect(["admin"]), deleteNews);
+router.delete("/:id", protect(), deleteNews);
 
 export default router;

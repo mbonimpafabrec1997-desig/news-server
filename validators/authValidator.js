@@ -63,6 +63,7 @@ export const signupSchema = Joi.object({
     .valid(Joi.ref('password'))
     .messages({
       'string.base':'Please match your password and confirm password'
-    })
-    
+    }),
+    country: Joi.string().optional(),
+    role: Joi.string().valid("user", "admin", "journalist").optional()
 })

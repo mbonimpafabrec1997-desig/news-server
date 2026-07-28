@@ -8,7 +8,7 @@ import { sendNewUserEmail } from "../utils/sendEmail.js";
 
 export const register = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, country } = req.body;
+    const { firstName, lastName, email, password, country, role } = req.body;
 
     const exist = await User.findOne({ email });
     if (exist) {
@@ -21,7 +21,8 @@ export const register = async (req, res) => {
       name: `${firstName} ${lastName}`,
       email,
       password: hashedPassword,
-      country
+      country,
+      role: role || "user"
     });
 
     if (newUser) {
@@ -46,7 +47,6 @@ export const register = async (req, res) => {
   }
 };
 
-
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -70,30 +70,15 @@ export const login = async (req, res) => {
     const userResponse = user.toObject();
     delete userResponse.password;
 
-    return handleSuccess(res, StatusCodes.OK, "Login successful", { 
-      token, 
-      user: userResponse 
+    // Subiza neza structure yakorewe handleSuccess
+    return res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Login successful",
+      token,
+      user: userResponse
     });
   } catch (error) {
     return handleError(res, StatusCodes.INTERNAL_SERVER_ERROR, "Internal server error");
-  }
-};
-
-const handleLogout = async () => {
-  try {
-  
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-
-    await fetch(`${API_URL}/api/v1/auth/logout`, {
-      method: "POST",
-    });
-
-  } catch (err) {
-    console.error("Logout backend error:", err);
-  } finally {
-  
-    window.location.href = "/login";
   }
 };
 
@@ -119,7 +104,6 @@ export const deleteAccount = async (req, res) => {
 
 export const adminDeleteUser = async (req, res) => {
   try {
-  
     const { id } = req.params;         
  
     await News.deleteMany({ author: id });
@@ -142,9 +126,7 @@ export const adminDeleteUser = async (req, res) => {
 
 export const logoutUser = async (req, res) => {
   try {
-  
     res.clearCookie('token'); 
-    
     return res.status(200).json({ 
       success: true, 
       message: "Logged out successfully from server." 
