@@ -1,5 +1,12 @@
 import express from 'express';
-import { deleteNewsAdmin, applyCopyrightStrike, handleUserViolation, adminDeleteUser } from '../controllers/adminController.js';
+import { 
+  deleteNewsAdmin, 
+  applyCopyrightStrike, 
+  handleUserViolation, 
+  adminDeleteUser,
+  getAllUsers,
+  sendMonetizationNotification
+} from '../controllers/adminController.js';
 
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -9,5 +16,7 @@ router.delete('/news/:id',             protect(['admin']), deleteNewsAdmin);
 router.post('/copyright-strike',         protect(['admin']), applyCopyrightStrike);
 router.post('/user-violation',           protect(['admin']), handleUserViolation);
 router.delete('/users/:userId',          protect(['admin']), adminDeleteUser);
+router.get('/users',                     protect(['admin']), getAllUsers);
+router.post('/users/:userId/notify',     protect(['admin']), sendMonetizationNotification);
 
 export default router;

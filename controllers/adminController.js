@@ -86,3 +86,80 @@ export const adminDeleteUser = async (req, res) => {
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
+
+export const getAllUsers = async (req, res) => {
+  try {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    // Aggregate views in the last 30 days by author
+    const viewsAgg = await News.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: thirtyDaysAgo }
+        }
+      },
+      {
+        $group: {
+          _id: "$author",
+          totalViewsLastMonth: { $sum: "$viewsCount" }
+        }
+      }
+    ]);
+
+    const viewsMap = {};
+    viewsAgg.forEach(item => {
+      if (item._id) {
+        viewsMap[item._id.toString()] = item.totalViewsLastMonth;
+      }
+    });
+
+    const users = await User.find().select("-password");
+
+    const usersWithStats = users.map(u => {
+      const lastMonthViews = viewsMap[u._id.toString()] || 0;
+      const followersCount = u.followers?.length || 0;
+      const isEligible = followersCount >= 1000 && lastMonthViews >= 10000;
+
+      return {
+        ...u.toObject(),
+        followersCount,
+        lastMonthViews,
+        isEligible
+      };
+    });
+
+    res.status(200).json({ success: true, users: usersWithStats });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
+export const sendMonetizationNotification = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { message } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    if (!user.notifications) {
+      user.notifications = [];
+    }
+
+    user.notifications.push({
+      message: message || "Ujuje ibisabwa byo kwinjiza amafaranga (Monetization). Umwirondoro wawe uremewe kwinjiza amafaranga.",
+      isRead: false,
+      link: "/Dashboard?tab=monetization",
+      createdAt: new Date()
+    });
+
+    await user.save();
+
+    res.status(200).json({ success: true, message: "Notification sent successfully." });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};

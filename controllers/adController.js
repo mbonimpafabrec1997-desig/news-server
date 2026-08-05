@@ -31,7 +31,20 @@ export const createAd = async (req, res) => {
 export const getAds = async (req, res) => {
   try {
     const ads = await Ad.find({ status: "active" }).sort({ createdAt: -1 });
-    res.status(200).json({ success: true, ads });
+    
+    const formattedAds = ads.map(ad => {
+      const bannerUrl = ad.banner 
+        ? (ad.banner.startsWith("http") ? ad.banner : `${req.protocol}://${req.get("host")}${ad.banner.startsWith("/") ? "" : "/"}${ad.banner}`) 
+        : "";
+      return {
+        ...ad.toObject(),
+        image: bannerUrl,
+        title: ad.businessName || "Sponsored Ad",
+        banner: bannerUrl
+      };
+    });
+
+    res.status(200).json({ success: true, ads: formattedAds });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
