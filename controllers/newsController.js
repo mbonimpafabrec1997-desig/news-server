@@ -125,6 +125,7 @@ export const createNews = async (req, res) => {
       content:  req.body.content,
       category: req.body.category,
       image:    imageUrl,
+      videoUrl: req.body.videoUrl || "",
       author:   req.user._id,
       country:  req.body.country || ""
     });
@@ -208,6 +209,59 @@ export const getAIRecommendations = async (req, res) => {
     }));
 
     return handleSuccess(res, StatusCodes.OK, "Recommendations fetched successfully", formattedNews);
+  } catch (error) {
+    return handleError(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+};
+
+export const addComment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { text } = req.body;
+
+    const news = await News.findById(id);
+    if (!news) {
+      return handleError(res, StatusCodes.NOT_FOUND, "Inkuru ntiboneka");
+    }
+
+    const user = await User.findById(req.user._id);
+    const comment = {
+      user: req.user._id,
+      userName: user ? user.name : "Anonymous",
+      text,
+      createdAt: new Date()
+    };
+
+    news.comments.push(comment);
+    await news.save();
+
+    const newComment = news.comments[news.comments.length - 1];
+
+    return handleSuccess(res, StatusCodes.CREATED, "Comment added successfully", { comment: newComment });
+  } catch (error) {
+    return handleError(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+};
+
+export const likeNews = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id;
+
+    const news = await News.findById(id);
+    if (!news) {
+      return handleError(res, StatusCodes.NOT_FOUND, "Inkuru ntiboneka");
+    }
+
+    const likeIndex = news.likes.indexOf(userId);
+    if (likeIndex > -1) {
+      news.likes.splice(likeIndex, 1);
+    } else {
+      news.likes.push(userId);
+    }
+
+    await news.save();
+    return handleSuccess(res, StatusCodes.OK, "Like updated successfully", { likesCount: news.likes.length, likes: news.likes });
   } catch (error) {
     return handleError(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
   }

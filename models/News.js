@@ -4,6 +4,7 @@ const newsSchema = new mongoose.Schema({
   title: { type: String, required: true },
   content: { type: String, required: true },
   image: { type: String, default: "" },     
+  videoUrl: { type: String, default: "" },     
   category: { type: String, required: true },
   country: { type: String, default: "" },
   status: {
