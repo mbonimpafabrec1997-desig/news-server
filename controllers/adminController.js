@@ -1,5 +1,6 @@
 import News from '../models/News.js'; 
 import User from '../models/User.js';
+import Contact from '../models/Contact.js';
 import { handleSuccess, handleError } from "../utils/responseHandler.js";
 import { StatusCodes } from "http-status-codes";
 
@@ -159,6 +160,15 @@ export const sendMonetizationNotification = async (req, res) => {
     await user.save();
 
     res.status(200).json({ success: true, message: "Notification sent successfully." });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
+export const getAdminMessages = async (req, res) => {
+  try {
+    const messages = await Contact.find().sort({ createdAt: -1 });
+    res.status(200).json({ success: true, messages });
   } catch (error) {
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
