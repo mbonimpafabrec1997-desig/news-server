@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import News from "../models/News.js";
 import { handleError, handleSuccess } from "../utils/responseHandler.js";
@@ -199,6 +200,56 @@ export const savePaymentDetails = async (req, res) => {
       success: true,
       message: "Payment details saved successfully",
       paymentDetails: user.paymentDetails
+    });
+  } catch (error) {
+    return handleError(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+};
+
+
+export const subscribeUser = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return handleError(res, StatusCodes.BAD_REQUEST, "Email is required");
+    }
+
+    // Check if user already exists
+    let user = await User.findOne({ email });
+    if (user) {
+      if (user.isSubscribed) {
+        return res.status(StatusCodes.OK).json({
+          success: true,
+          message: "You are already subscribed to our newsletter!"
+        });
+      }
+      user.isSubscribed = true;
+      await user.save();
+      return res.status(StatusCodes.OK).json({
+        success: true,
+        message: "Successfully subscribed to our newsletter!"
+      });
+    }
+
+    // If user does not exist, create a placeholder user with isSubscribed: true
+    // Generate a random password since password field is required in User model
+    const randomPassword = Math.random().toString(36).slice(-10);
+    const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+    const emailPrefix = email.split("@")[0];
+    const name = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
+
+    user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      isSubscribed: true,
+      role: "user"
+    });
+
+    return res.status(StatusCodes.CREATED).json({
+      success: true,
+      message: "Successfully subscribed to our newsletter!"
     });
   } catch (error) {
     return handleError(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);

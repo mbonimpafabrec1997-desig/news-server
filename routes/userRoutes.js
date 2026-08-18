@@ -7,10 +7,14 @@ import {
   getUserNotifications,
   markNotificationsAsRead,
   getUserMonetizationStatus,
-  savePaymentDetails
+  savePaymentDetails,
+  subscribeUser
 } from "../controllers/userController.js";
 
 const router = express.Router();
+
+// Public newsletter subscription route
+router.post("/subscribe", subscribeUser);
 
 // Profile picture upload endpoint
 router.put("/me/avatar", protect(), updateAvatar);

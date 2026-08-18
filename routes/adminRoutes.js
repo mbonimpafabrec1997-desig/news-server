@@ -6,7 +6,8 @@ import {
   adminDeleteUser,
   getAllUsers,
   sendMonetizationNotification,
-  getAdminMessages
+  getAdminMessages,
+  toggleBreakingNewsAdmin
 } from '../controllers/adminController.js';
 
 import { protect } from '../middleware/authMiddleware.js';
@@ -20,5 +21,6 @@ router.delete('/users/:userId',          protect(['admin']), adminDeleteUser);
 router.get('/users',                     protect(['admin']), getAllUsers);
 router.post('/users/:userId/notify',     protect(['admin']), sendMonetizationNotification);
 router.get('/messages',                  protect(['admin']), getAdminMessages);
+router.patch('/news/:id/breaking',       protect(['admin']), toggleBreakingNewsAdmin);
 
 export default router;

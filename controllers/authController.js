@@ -1,3 +1,4 @@
+import { OAuth2Client } from "google-auth-library";
 import User from "../models/User.js";
 import News from "../models/News.js";
 import bcrypt from "bcryptjs";
@@ -133,5 +134,82 @@ export const logoutUser = async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const googleLogin = async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) {
+      return handleError(res, StatusCodes.BAD_REQUEST, "Token is required");
+    }
+
+    const googleClientId = process.env.GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
+    const client = new OAuth2Client(googleClientId);
+
+    let ticket;
+    try {
+      ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: googleClientId,
+      });
+    } catch (verifyError) {
+      console.error("Google token verification failed:", verifyError);
+      return handleError(res, StatusCodes.BAD_REQUEST, "Google authentication failed. Check your Client ID configuration.");
+    }
+
+    const payload = ticket.getPayload();
+    const { email, name, picture } = payload;
+
+    if (!email) {
+      return handleError(res, StatusCodes.BAD_REQUEST, "Google authentication did not return an email address.");
+    }
+
+    // Find or create user
+    let user = await User.findOne({ email });
+    if (!user) {
+      const randomPassword = Math.random().toString(36).slice(-10);
+      const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+      user = await User.create({
+        name: name || email.split("@")[0],
+        email: email,
+        password: hashedPassword,
+        avatar: picture || "",
+        role: "user",
+        isSubscribed: true
+      });
+
+      try {
+        await sendNewUserEmail({
+          to: process.env.EMAIL_USER,
+          name: user.name,
+          email: user.email,
+          country: "Google Sign-In",
+        });
+      } catch (mailError) {
+        console.error("Email sending failed during Google signup:", mailError);
+      }
+    }
+
+    // Create JWT token
+    const jwtToken = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "90d" }
+    );
+
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    return res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Google login successful",
+      token: jwtToken,
+      user: userResponse
+    });
+  } catch (error) {
+    console.error("Google Login Controller Error:", error);
+    return handleError(res, StatusCodes.INTERNAL_SERVER_ERROR, error.message);
   }
 };

@@ -15,9 +15,31 @@ const makeAbsoluteImage = (req, image) => {
 
 export const getNews = async (req, res) => {
   try {
-    const news = await News.find()
+    const { trending, breaking, category, country } = req.query;
+    let query = {};
+    
+    if (category) query.category = category;
+    if (country) query.country = country;
+    
+    let sort = { createdAt: -1 };
+    
+    if (trending === "true") {
+      sort = { viewsCount: -1, createdAt: -1 };
+    } else if (breaking === "true") {
+      query.isBreaking = true;
+    }
+    
+    let news = await News.find(query)
       .populate("author", "name email")
-      .sort({ createdAt: -1 });
+      .sort(sort);
+
+    // Fallback for breaking news if none is marked as breaking
+    if (breaking === "true" && news.length === 0) {
+      news = await News.find()
+        .populate("author", "name email")
+        .sort({ createdAt: -1 })
+        .limit(4);
+    }
 
     const formattedNews = news.map(item => ({
       ...item.toObject(),
@@ -121,26 +143,30 @@ export const createNews = async (req, res) => {
     }
 
     const news = await News.create({
-      title:    req.body.title,
-      content:  req.body.content,
-      category: req.body.category,
-      image:    imageUrl,
-      videoUrl: req.body.videoUrl || "",
-      author:   req.user._id,
-      country:  req.body.country || ""
+      title:      req.body.title,
+      content:    req.body.content,
+      category:   req.body.category,
+      image:      imageUrl,
+      videoUrl:   req.body.videoUrl || "",
+      author:     req.user._id,
+      country:    req.body.country || "",
+      isBreaking: req.body.isBreaking === 'true' || req.body.isBreaking === true
     });
 
     const subscribers = await User.find({ isSubscribed: true }).select("email");
     const emails = subscribers.map(u => u.email);
 
     if (emails.length > 0) {
-      await sendNewArticleEmail({
-        to:       emails.join(","),
-        title:    news.title,
-        category: news.category,
-        author:   req.user.name,
-        link:     `${process.env.CLIENT_URL}/news/${news._id}`,
-      });
+      try {
+        await sendNewArticleEmail({
+          to:       emails.join(","),
+          title:    news.title,
+          category: news.category,
+          author:   req.user?.name || "Editor",
+        });
+      } catch (mailError) {
+        console.error("Subscriber notification email failed:", mailError.message);
+      }
     }
 
     return handleSuccess(res, StatusCodes.CREATED, "story created", news);

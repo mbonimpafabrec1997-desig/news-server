@@ -43,6 +43,7 @@ const userSchema = new mongoose.Schema({
   }],
   avatar: { type: String, default: "" },
   isBanned: { type: Boolean, default: false },
+  isSubscribed: { type: Boolean, default: false },
   banReason: { type: String, default: "" },
   isMonetized: { type: Boolean, default: false },
   paymentDetails: {

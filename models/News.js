@@ -35,7 +35,8 @@ const newsSchema = new mongoose.Schema({
     originalAuthor: { type: String, default: "" },
     compensationFee: { type: String, default: "" },
     strikedAt: { type: Date }
-  }
+  },
+  isBreaking: { type: Boolean, default: false }
 }, { timestamps: true });
 
 const News = mongoose.models.News || mongoose.model("News", newsSchema);
