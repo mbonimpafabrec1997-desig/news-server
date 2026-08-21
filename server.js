@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+﻿import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
@@ -17,6 +17,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import statusRoutes from "./routes/status.js";
 import userRoutes from "./routes/userRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js";
+import liveStreamRoutes from "./routes/liveStreamRoutes.js";
 
 const app = express();
 app.use(cors());
@@ -38,8 +39,9 @@ app.use('/api/v1/admin', adminRoutes);
 app.use("/api/v1/status", statusRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/ai", aiRoutes);
+app.use("/api/v1/livestreams", liveStreamRoutes);
 
-app.get("/", (req, res) => res.send("API is running 🔥"));
+app.get("/", (req, res) => res.send("API is running"));
 
 const startServer = async () => {
   try {
@@ -47,13 +49,13 @@ const startServer = async () => {
     
     if (!fs.existsSync("./uploads")) {
       fs.mkdirSync("./uploads");
-      console.log("✅ Uploads folder created");
+      console.log("Uploads folder created");
     }
     
     const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => console.log(`✅ Server running on port ${PORT} 🚀`));
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   } catch (error) {
-    console.error("❌ Failed to start the backend engine node:", error.message);
+    console.error("Failed to start the backend engine node:", error.message);
   }
 };
 
